@@ -73,23 +73,39 @@ async function run() {
       }
     });
 
+    // save tasks to db
     app.post("/tasks", async (req, res) => {
-      const taskData = req.query?.taskInfo;
+      const taskData = req.body;
+      if (!taskData) {
+        return res.status(500).send({ message: "Task data required." });
+      }
+      const result = await tasksCollection.insertOne(taskData);
+      res.send(result);
       console.log(taskData);
     });
 
+    // get / fetch tasks data
     app.get("/tasks", async (req, res) => {
-      console.log(taskData);
+      const email = req.query?.email;
+      console.log("current user email: ", email);
+      const query = { taskUser: email || "" };
+      const result = await tasksCollection.find(query).toArray();
+      console.log("user tasks: ", result);
+      res.send(result);
     });
 
-    app.patch("/tasks/:id", async (req, res) => {
-      const id = req.params.id;
-      console.log(id);
-    });
+    // delete a task
     app.delete("/tasks/:id", async (req, res) => {
-      const id = req.params.id;
-      console.log(id);
+      const taskId = req.params.id;
+      console.log(taskId);
+      const query = { id: parseInt(taskId) };
+      const result = await tasksCollection.deleteOne(query);
+      res.send(result);
     });
+
+
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
