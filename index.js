@@ -103,9 +103,23 @@ async function run() {
       res.send(result);
     });
 
+    // update task data
+    app.put("/tasks/:id", async (req, res) => {
+      const taskId = req.params.id;
+      const newCategory = req.query.category;
+      const currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
+      const query = { id: parseInt(taskId) };
 
-
-
+      if (newCategory) {
+        const result = await tasksCollection.updateOne(query, {
+          $set: {
+            category: newCategory,
+            timestamp: currentTime,
+          },
+        });
+        res.send(result);
+      }
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
