@@ -4,12 +4,13 @@ const cors = require("cors");
 const morgan = require("morgan");
 require("dotenv").config();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion } = require("mongodb");
+const moment = require("moment");
 
 // middleware
 app.use(express.json());
-app.use(cors);
+app.use(cors());
 app.use(morgan("dev"));
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pw1gp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -32,6 +33,63 @@ async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
+
+    // Collections
+    const usersCollection = client.db("todoDB").collection("users");
+    const tasksCollection = client.db("todoDB").collection("tasks");
+
+    // API's
+
+    // save user data to db and also check if the user already exists
+    app.post("/users", async (req, res) => {
+      const userData = req.body;
+      console.log(userData);
+      try {
+        if (!userData) {
+          return res.status(500).send({ message: "Users info required." });
+        }
+
+        const userQuery = { email: userData?.email };
+        const isExist = await usersCollection.findOne(userQuery);
+
+        if (isExist) {
+          const currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
+          const result = await usersCollection.updateOne(
+            userQuery,
+            { $set: { lastLoggedIn: currentTime } },
+            { upsert: true }
+          );
+
+          console.log("result from isexists", result);
+          return res.send({ message: "User already exists." });
+        }
+
+        const result = await usersCollection.insertOne(userData);
+        console.log("result from insert", result);
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Something went wrong, try again." });
+      }
+    });
+
+    app.post("/tasks", async (req, res) => {
+      const taskData = req.query?.taskInfo;
+      console.log(taskData);
+    });
+
+    app.get("/tasks", async (req, res) => {
+      console.log(taskData);
+    });
+
+    app.patch("/tasks/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+    });
+    app.delete("/tasks/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
