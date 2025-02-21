@@ -29,10 +29,10 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
 
     // Collections
     const usersCollection = client.db("todoDB").collection("users");
@@ -43,7 +43,7 @@ async function run() {
     // save user data to db and also check if the user already exists
     app.post("/users", async (req, res) => {
       const userData = req.body;
-      console.log(userData);
+      // console.log(userData);
       try {
         if (!userData) {
           return res.status(500).send({ message: "Users info required." });
@@ -60,15 +60,15 @@ async function run() {
             { upsert: true }
           );
 
-          console.log("result from isexists", result);
+          // console.log("result from isexists", result);
           return res.send({ message: "User already exists." });
         }
 
         const result = await usersCollection.insertOne(userData);
-        console.log("result from insert", result);
+        // console.log("result from insert", result);
         res.send(result);
       } catch (error) {
-        console.log(error);
+        // console.log(error);
         res.status(500).send({ message: "Something went wrong, try again." });
       }
     });
@@ -81,23 +81,23 @@ async function run() {
       }
       const result = await tasksCollection.insertOne(taskData);
       res.send(result);
-      console.log(taskData);
+      // console.log(taskData);
     });
 
     // get / fetch tasks data
     app.get("/tasks", async (req, res) => {
       const email = req.query?.email;
-      console.log("current user email: ", email);
+      
       const query = { taskUser: email || "" };
       const result = await tasksCollection.find(query).toArray();
-      console.log("user tasks: ", result);
+      // console.log("user tasks: ", result);
       res.send(result);
     });
 
     // delete a task
     app.delete("/tasks/:id", async (req, res) => {
       const taskId = req.params.id;
-      console.log(taskId);
+      // console.log(taskId);
       const query = { id: parseInt(taskId) };
       const result = await tasksCollection.deleteOne(query);
       res.send(result);
@@ -108,7 +108,7 @@ async function run() {
       const taskId = req.params.id;
       const newCategory = req.query.category;
       const updatedTask = req.body;
-      const currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
+      const currentTime = moment().utc().format();
       const query = { id: parseInt(taskId) };
 
       // Create an object to store fields that need to be updated
