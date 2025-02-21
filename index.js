@@ -107,6 +107,8 @@ async function run() {
     app.put("/tasks/:id", async (req, res) => {
       const taskId = req.params.id;
       const newCategory = req.query.category;
+      const updatedTask = req.body;
+      console.log(taskId, updatedTask);
       const currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
       const query = { id: parseInt(taskId) };
 
@@ -118,6 +120,18 @@ async function run() {
           },
         });
         res.send(result);
+      }
+
+      if (updatedTask) {
+        const result = await tasksCollection.updateOne(query, {
+          $set: {
+            title: updatedTask?.title,
+            description: updatedTask?.description,
+            category: updatedTask?.category,
+            timestamp: updatedTask?.timestamp,
+          },
+        });
+        res.send(result)
       }
     });
   } finally {
