@@ -116,6 +116,7 @@ async function run() {
 
       if (newCategory) {
         updateObj.category = newCategory;
+        updateObj.timestamp = currentTime;
       }
 
       if (updatedTask) {
