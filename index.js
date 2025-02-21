@@ -108,30 +108,40 @@ async function run() {
       const taskId = req.params.id;
       const newCategory = req.query.category;
       const updatedTask = req.body;
-      console.log(taskId, updatedTask);
       const currentTime = moment().format("MMMM Do YYYY, h:mm:ss a");
       const query = { id: parseInt(taskId) };
 
+      // Create an object to store fields that need to be updated
+      const updateObj = {};
+
       if (newCategory) {
-        const result = await tasksCollection.updateOne(query, {
-          $set: {
-            category: newCategory,
-            timestamp: currentTime,
-          },
-        });
-        res.send(result);
+        updateObj.category = newCategory;
       }
 
       if (updatedTask) {
+        // Only set values if they exist
+        if (updatedTask.title) updateObj.title = updatedTask.title;
+        if (updatedTask.description)
+          updateObj.description = updatedTask.description;
+        if (updatedTask.category) updateObj.category = updatedTask.category;
+        if (updatedTask.timestamp) updateObj.timestamp = updatedTask.timestamp;
+        // updateObj.timestamp = currentTime; // Always set timestamp
+      }
+
+      // If no valid fields are provided, send an error
+      if (Object.keys(updateObj).length === 0) {
+        return res.status(400).send({ message: "No valid fields to update." });
+      }
+
+      try {
+        // Perform the update
         const result = await tasksCollection.updateOne(query, {
-          $set: {
-            title: updatedTask?.title,
-            description: updatedTask?.description,
-            category: updatedTask?.category,
-            timestamp: updatedTask?.timestamp,
-          },
+          $set: updateObj,
         });
-        res.send(result)
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating task:", error);
+        res.status(500).send({ message: "Failed to update task." });
       }
     });
   } finally {
